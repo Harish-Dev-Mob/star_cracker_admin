@@ -22,4 +22,5 @@ export const authConfig = {
       return session;
     },
   },
+  trustHost: true,
 } satisfies NextAuthConfig;
