@@ -1,0 +1,254 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  // url is now configured in prisma.config.ts (Prisma v7)
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  CONFIRMED
+  PACKED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMode {
+  COD
+  ONLINE
+}
+
+enum CouponType {
+  PERCENT
+  FLAT
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?  @unique
+  phone        String?  @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  isBlocked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  addresses Address[]
+  orders    Order[]
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  phone     String
+  street    String
+  city      String
+  state     String
+  pincode   String
+  country   String   @default("India")
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  icon      String?
+  image     String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+model Product {
+  id                String   @id @default(cuid())
+  name              String
+  slug              String   @unique
+  description       String
+  price             Float
+  discountPrice     Float?
+  categoryId        String
+  images            String // JSON array of image paths
+  stock             Int      @default(0)
+  lowStockThreshold Int      @default(10)
+  weight            String?
+  isActive          Boolean  @default(true)
+  isCombo           Boolean  @default(false)
+  isFeatured        Boolean  @default(false)
+  tags              String   @default("[]") // JSON array
+  crackerType       String   @default("TRADITIONAL") // "GREEN" | "TRADITIONAL"
+  gstRate           Float    @default(18) // GST percentage (e.g. 18)
+  hsnCode           String? // HSN code for compliance
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+  comboItems ComboItem[]
+}
+
+model Order {
+  id               String      @id @default(cuid())
+  userId           String
+  addressId        String?
+  pickupLocationId String?
+  status           OrderStatus @default(PLACED)
+  paymentMode      PaymentMode @default(COD)
+  deliveryType     String      @default("DELIVERY") // "DELIVERY" | "PICKUP"
+  subtotal         Float
+  discount         Float       @default(0)
+  total            Float
+  couponCode       String?
+  notes            String?
+  ageConsent       Boolean     @default(false)
+  termsAcceptedAt  DateTime?
+  returnEligible   Boolean     @default(true)
+  invoiceRef       String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  user           User            @relation(fields: [userId], references: [id])
+  address        Address?        @relation(fields: [addressId], references: [id])
+  pickupLocation PickupLocation? @relation(fields: [pickupLocationId], references: [id])
+  orderItems     OrderItem[]
+}
+
+model OrderItem {
+  id           String @id @default(cuid())
+  orderId      String
+  productId    String
+  quantity     Int
+  priceAtOrder Float
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model Coupon {
+  id            String     @id @default(cuid())
+  code          String     @unique
+  type          CouponType
+  value         Float // percentage (0-100) or flat amount
+  minOrderValue Float      @default(0)
+  expiresAt     DateTime?
+  isActive      Boolean    @default(true)
+  usageLimit    Int?
+  usedCount     Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  imageUrl  String
+  linkUrl   String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  rating    Int      @default(5) // 1-5
+  text      String
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Delivery Restriction Zones ───────────────────────────────────────────────
+
+model DeliveryZone {
+  id             String   @id @default(cuid())
+  pincode        String? // exact pincode match (6 digits)
+  stateCode      String? // 2-char state prefix for broad blocks (e.g. "29" = Karnataka)
+  isAllowed      Boolean  @default(true)
+  courierPartner String? // e.g. "BlueDart Surface", "DTDC Ground"
+  minOrderValue  Float    @default(0)
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ─── Pickup Locations ─────────────────────────────────────────────────────────
+
+model PickupLocation {
+  id        String   @id @default(cuid())
+  name      String
+  address   String
+  city      String
+  state     String
+  pincode   String
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+}
+
+// ─── Combo / Bundle Packs ─────────────────────────────────────────────────────
+
+model Combo {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String
+  images        String   @default("[]") // JSON array
+  price         Float
+  discountPrice Float?
+  isActive      Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  comboItems ComboItem[]
+}
+
+model ComboItem {
+  id        String @id @default(cuid())
+  comboId   String
+  productId String
+  quantity  Int    @default(1)
+
+  combo   Combo   @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+// ─── Site Configuration (key-value) ──────────────────────────────────────────
+
+model SiteConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+}
