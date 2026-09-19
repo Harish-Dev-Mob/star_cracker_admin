@@ -12,19 +12,19 @@ export default auth((req: NextRequest & { auth: { user?: { role?: string } } | n
 
   // ── Redirect logged-in users away from auth pages ─────────────────────────
   if (isLoggedIn && nextUrl.pathname.startsWith("/login")) {
-    return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+    return NextResponse.redirect(new URL("/admin/dashboard", req.nextUrl.origin));
   }
 
   // ── Require login for all other routes ──────────────────────────────────────
   if (!isLoggedIn && !nextUrl.pathname.startsWith("/login")) {
     return NextResponse.redirect(
-      new URL(`/login?callbackUrl=${encodeURIComponent(nextUrl.pathname)}`, req.url)
+      new URL(`/login?callbackUrl=${encodeURIComponent(nextUrl.pathname)}`, req.nextUrl.origin)
     );
   }
 
   // ── Redirect root to dashboard ─────────────────────────────────────────────
   if (nextUrl.pathname === "/") {
-    return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+    return NextResponse.redirect(new URL("/admin/dashboard", req.nextUrl.origin));
   }
 
   // ── At this point, the user is logged in (and therefore ADMIN) ───────────
