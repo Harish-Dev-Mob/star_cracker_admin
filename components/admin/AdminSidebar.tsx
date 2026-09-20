@@ -32,11 +32,10 @@ function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
             key={link.href}
             href={link.href}
             onClick={onLinkClick}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${
-              isActive
-                ? "bg-[var(--color-primary)] text-white"
-                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-            }`}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-[var(--radius-md)] text-sm font-medium transition-colors ${isActive
+              ? "bg-[var(--color-primary)] text-white"
+              : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              }`}
           >
             <span className="text-base">{link.icon}</span>
             {link.label}
