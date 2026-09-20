@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminBreadcrumb from "@/components/admin/AdminBreadcrumb";
 
 export default async function AdminLayout({
   children,
@@ -31,6 +32,12 @@ export default async function AdminLayout({
         {/* Spacer for fixed mobile header */}
         <div className="lg:hidden h-16 shrink-0" />
 
+        {/* ── Breadcrumb bar ──────────────────────────────── */}
+        <div className="shrink-0 px-4 lg:px-8 py-3 bg-white border-b border-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
+          <AdminBreadcrumb />
+        </div>
+
+        {/* ── Page content ────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto p-4 lg:p-8">
           {children}
         </div>
