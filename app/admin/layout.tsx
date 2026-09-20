@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 
 export default async function AdminLayout({
@@ -29,11 +28,8 @@ export default async function AdminLayout({
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        {/* Mobile Header */}
-        <header className="lg:hidden h-16 bg-white border-b border-[var(--color-border)] flex items-center justify-between px-4 shrink-0">
-          <span className="font-display font-bold text-[var(--color-primary)]">Admin Panel</span>
-          <Link href="/" className="text-sm font-medium text-gray-600">Store →</Link>
-        </header>
+        {/* Spacer for fixed mobile header */}
+        <div className="lg:hidden h-16 shrink-0" />
 
         <div className="flex-1 overflow-y-auto p-4 lg:p-8">
           {children}
