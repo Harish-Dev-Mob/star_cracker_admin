@@ -642,7 +642,7 @@ export default function AdminReviewsPage() {
             </div>
 
             {/* ── Scrollable Form Body ──────────────────────────────────── */}
-            <form onSubmit={handleSave} className="flex flex-col">
+            <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden min-h-0">
               <div className="overflow-y-auto flex-1 px-5 sm:px-8 py-6 sm:py-8 space-y-6">
 
                 {/* Error Banner */}
