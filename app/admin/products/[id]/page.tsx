@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import ProductCreateForm from "../new/ProductCreateForm";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export default async function ProductEditPage(props: { params: Promise<{ id: string }> }) {
@@ -45,23 +44,7 @@ export default async function ProductEditPage(props: { params: Promise<{ id: str
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 pb-12">
-      <div className="flex items-center gap-2 text-sm font-medium text-gray-400">
-        <Link href="/admin/products" className="hover:text-gray-700 transition-colors">
-          Products
-        </Link>
-        <span>/</span>
-        <span className="text-gray-700">Edit</span>
-      </div>
-
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-200/60 shadow-sm relative overflow-hidden flex flex-col md:flex-row justify-between items-center">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-100 to-purple-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none opacity-60" />
-        <div className="relative z-10">
-          <h1 className="text-3xl font-black text-gray-900 font-display tracking-tight">Edit Product</h1>
-          <p className="text-sm font-medium text-gray-500 mt-1">Update details for {product.name}.</p>
-        </div>
-      </div>
-
+    <div className="max-w-5xl mx-auto">
       <ProductCreateForm categories={categories} initialData={initialData} />
     </div>
   );
