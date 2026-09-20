@@ -40,7 +40,8 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
             <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Spent</p>
             <p className="text-xl font-black text-blue-900">{formatPrice(totalSpent)}</p>
           </div>
-          <div className="bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-xl text-center">
+          <div className="bg-indigo-50 border borde
+          r-indigo-200 px-4 py-2 rounded-xl text-center">
             <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-1">Orders</p>
             <p className="text-xl font-black text-indigo-900">{customer.orders.length}</p>
           </div>
