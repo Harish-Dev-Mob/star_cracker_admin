@@ -44,7 +44,7 @@ export default async function ProductEditPage(props: { params: Promise<{ id: str
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto pb-8">
       <ProductCreateForm categories={categories} initialData={initialData} />
     </div>
   );

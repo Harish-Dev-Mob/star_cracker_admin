@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
 import ProductCreateForm from "./ProductCreateForm";
 
 export default async function AdminProductCreatePage() {
@@ -9,7 +8,7 @@ export default async function AdminProductCreatePage() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto pb-12 animate-slide-up">
+    <div className="max-w-5xl mx-auto pb-8">
       <ProductCreateForm categories={categories} />
     </div>
   );
