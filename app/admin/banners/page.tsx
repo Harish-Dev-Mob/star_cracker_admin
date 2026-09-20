@@ -589,22 +589,20 @@ export default function AdminBannersPage() {
                     )}
                   </div>
                   {/* Actions */}
-                  <div className="flex gap-1.5 shrink-0">
+                  <div className="flex gap-2 shrink-0">
                     <button
                       id={`btn-edit-banner-${banner.id}`}
                       onClick={() => openEdit(banner)}
-                      className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-sm hover:bg-blue-100 transition-colors flex items-center justify-center"
-                      title="Edit"
+                      className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100 hover:text-amber-700"
                     >
-                      ✏️
+                      Edit
                     </button>
                     <button
                       id={`btn-delete-banner-${banner.id}`}
                       onClick={() => { setDeleteTarget(banner); setDeleteError(""); }}
-                      className="w-8 h-8 rounded-lg bg-red-50 text-red-500 border border-red-100 text-sm hover:bg-red-100 transition-colors flex items-center justify-center"
-                      title="Delete"
+                      className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:text-red-700"
                     >
-                      🗑️
+                      Delete
                     </button>
                   </div>
                 </div>

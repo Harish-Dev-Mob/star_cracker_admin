@@ -583,9 +583,9 @@ export default function AdminReviewsPage() {
                     <button
                       id={`btn-edit-review-${review.id}`}
                       onClick={() => openEdit(review)}
-                      className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-xs font-bold hover:bg-blue-100 transition-colors flex items-center gap-1"
+                      className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100 hover:text-amber-700"
                     >
-                      ✏️ Edit
+                      Edit
                     </button>
                     <button
                       id={`btn-delete-review-${review.id}`}
@@ -593,9 +593,9 @@ export default function AdminReviewsPage() {
                         setDeleteTarget(review);
                         setDeleteError("");
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 border border-red-100 text-xs font-bold hover:bg-red-100 transition-colors flex items-center gap-1"
+                      className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:text-red-700"
                     >
-                      🗑️
+                      Delete
                     </button>
                   </div>
                 </div>

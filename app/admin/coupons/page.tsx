@@ -280,17 +280,17 @@ export default function AdminCouponsPage() {
                         {coupon.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-6 py-5 text-right">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-6 py-5 text-center">
+                      <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => openEditModal(coupon)}
-                          className="text-blue-600 font-bold text-[11px] uppercase tracking-wider hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                          className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100 hover:text-amber-700"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => setDeleteId(coupon.id)}
-                          className="text-red-600 font-bold text-[11px] uppercase tracking-wider hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors"
+                          className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:text-red-700"
                         >
                           Delete
                         </button>

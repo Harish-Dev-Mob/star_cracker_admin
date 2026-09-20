@@ -190,19 +190,21 @@ export default function DeliveryZonesPage() {
                   <td className="px-6 py-4 text-center font-bold text-gray-900">
                     ₹{zone.minOrderValue}
                   </td>
-                  <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => openModal(zone)}
-                      className="text-blue-600 font-bold text-xs uppercase tracking-wider hover:underline mr-4"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => setDeleteId(zone.id)}
-                      className="text-red-600 font-bold text-xs uppercase tracking-wider hover:underline"
-                    >
-                      Delete
-                    </button>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => openModal(zone)}
+                        className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100 hover:text-amber-700"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(zone.id)}
+                        className="inline-flex items-center px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer bg-red-50 text-red-600 border-red-100 hover:bg-red-100 hover:text-red-700"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
