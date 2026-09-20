@@ -34,10 +34,7 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
       {/* Header section */}
       <div className="bg-white p-8 rounded-3xl border border-gray-200/60 shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-100 to-indigo-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none opacity-60" />
-        <div className="relative z-10">
-          <h1 className="text-3xl font-black text-gray-900 font-display tracking-tight">{customer.name}</h1>
-          <p className="text-sm font-medium text-gray-500 mt-1">{customer.email || "No email"} • {customer.phone || "No phone"}</p>
-        </div>
+
         <div className="relative z-10 flex gap-4">
           <div className="bg-blue-50 border border-blue-200 px-4 py-2 rounded-xl text-center">
             <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Spent</p>
@@ -52,7 +49,7 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
 
       <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
         <div className="p-6 border-b border-gray-100">
-           <h2 className="text-xl font-bold font-display text-gray-900">Order History</h2>
+          <h2 className="text-xl font-bold font-display text-gray-900">Order History</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-600">
@@ -73,7 +70,7 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
               ) : (
                 customer.orders.map((order) => {
                   const itemCount = order.orderItems.reduce((acc, item) => acc + item.quantity, 0);
-                  
+
                   return (
                     <tr key={order.id} className="hover:bg-gray-50 transition-colors group">
                       <td className="px-6 py-5 font-mono text-xs font-bold text-gray-500 group-hover:text-gray-900">
@@ -83,9 +80,9 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
                       <td className="px-6 py-5 font-bold">{itemCount} items</td>
                       <td className="px-6 py-5">
                         <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm
-                          ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700 border border-green-200' : 
-                            order.status === 'CANCELLED' ? 'bg-red-100 text-red-700 border border-red-200' : 
-                            'bg-blue-100 text-blue-700 border border-blue-200'}`}>
+                          ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700 border border-green-200' :
+                            order.status === 'CANCELLED' ? 'bg-red-100 text-red-700 border border-red-200' :
+                              'bg-blue-100 text-blue-700 border border-blue-200'}`}>
                           {order.status}
                         </span>
                       </td>
