@@ -10,6 +10,8 @@ function formatPrice(n: number) {
 
 const STATUS_META: Record<string, { badge: string; dot: string }> = {
   PLACED:    { badge: "bg-gray-100 text-gray-700 border-gray-200",     dot: "bg-gray-400" },
+  PAYMENT_PENDING: { badge: "bg-yellow-100 text-yellow-700 border-yellow-200", dot: "bg-yellow-500" },
+  PAYMENT_COMPLETED: { badge: "bg-emerald-100 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
   CONFIRMED: { badge: "bg-blue-100 text-blue-700 border-blue-200",     dot: "bg-blue-500" },
   PACKED:    { badge: "bg-indigo-100 text-indigo-700 border-indigo-200", dot: "bg-indigo-500" },
   SHIPPED:   { badge: "bg-purple-100 text-purple-700 border-purple-200", dot: "bg-purple-500" },
@@ -18,7 +20,7 @@ const STATUS_META: Record<string, { badge: string; dot: string }> = {
 };
 
 const STATUS_ICON: Record<string, string> = {
-  PLACED: "📝", CONFIRMED: "✅", PACKED: "📦",
+  PLACED: "📝", PAYMENT_PENDING: "⏳", PAYMENT_COMPLETED: "💳", CONFIRMED: "✅", PACKED: "📦",
   SHIPPED: "🚚", DELIVERED: "🎉", CANCELLED: "❌",
 };
 
@@ -76,7 +78,7 @@ export default async function AdminOrdersPage({
       {/* ── Status Summary Chips ─────────────────────────────────────────────── */}
       {orders.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"].map((s) => {
+          {["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "CANCELLED"].map((s) => {
             const m = STATUS_META[s];
             return (
               <div

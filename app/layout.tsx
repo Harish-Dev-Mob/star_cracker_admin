@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://star-cracker-admin.onrender.com",
+    url: "http://localhost:3001",
     siteName: "StarCracker",
   },
 };

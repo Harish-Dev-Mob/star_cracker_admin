@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 
-const VALID_STATUSES = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"];
+const VALID_STATUSES = ["PLACED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"];
 
 // GET /api/admin/orders/[id]
 export async function GET(

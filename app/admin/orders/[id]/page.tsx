@@ -110,30 +110,48 @@ const STATUS_STEPS = [
     desc: "Order delivered",
     color: "green",
   },
+  {
+    id: "PAYMENT_PENDING",
+    label: "Payment Pending",
+    icon: "⏳",
+    desc: "Awaiting payment",
+    color: "yellow",
+  },
+  {
+    id: "PAYMENT_COMPLETED",
+    label: "Payment Completed",
+    icon: "💳",
+    desc: "Payment received",
+    color: "emerald",
+  },
 ];
 
 const STATUS_META: Record<
   string,
   { bg: string; text: string; border: string; badge: string }
 > = {
-  PLACED:    { bg: "bg-gray-100",   text: "text-gray-700",   border: "border-gray-200",   badge: "bg-gray-50 text-gray-700 border-gray-200" },
-  CONFIRMED: { bg: "bg-blue-100",   text: "text-blue-700",   border: "border-blue-200",   badge: "bg-blue-50 text-blue-700 border-blue-200" },
-  PACKED:    { bg: "bg-indigo-100", text: "text-indigo-700", border: "border-indigo-200", badge: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-  SHIPPED:   { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200", badge: "bg-purple-50 text-purple-700 border-purple-200" },
-  DELIVERED: { bg: "bg-green-100",  text: "text-green-700",  border: "border-green-200",  badge: "bg-green-50 text-green-700 border-green-200" },
-  CANCELLED: { bg: "bg-red-100",    text: "text-red-700",    border: "border-red-200",    badge: "bg-red-50 text-red-700 border-red-200" },
+  PLACED: { bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200", badge: "bg-gray-50 text-gray-700 border-gray-200" },
+  PAYMENT_PENDING: { bg: "bg-yellow-100", text: "text-yellow-700", border: "border-yellow-200", badge: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  PAYMENT_COMPLETED: { bg: "bg-emerald-100", text: "text-emerald-700", border: "border-emerald-200", badge: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  CONFIRMED: { bg: "bg-blue-100", text: "text-blue-700", border: "border-blue-200", badge: "bg-blue-50 text-blue-700 border-blue-200" },
+  PACKED: { bg: "bg-indigo-100", text: "text-indigo-700", border: "border-indigo-200", badge: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+  SHIPPED: { bg: "bg-purple-100", text: "text-purple-700", border: "border-purple-200", badge: "bg-purple-50 text-purple-700 border-purple-200" },
+  DELIVERED: { bg: "bg-green-100", text: "text-green-700", border: "border-green-200", badge: "bg-green-50 text-green-700 border-green-200" },
+  CANCELLED: { bg: "bg-red-100", text: "text-red-700", border: "border-red-200", badge: "bg-red-50 text-red-700 border-red-200" },
 };
 
 const NEXT_STATUS: Record<string, string | null> = {
-  PLACED:    "CONFIRMED",
+  PLACED: "CONFIRMED",
   CONFIRMED: "PACKED",
-  PACKED:    "SHIPPED",
-  SHIPPED:   "DELIVERED",
-  DELIVERED: null,
+  PACKED: "SHIPPED",
+  SHIPPED: "DELIVERED",
+  DELIVERED: "PAYMENT_PENDING",
+  PAYMENT_PENDING: "PAYMENT_COMPLETED",
+  PAYMENT_COMPLETED: null,
   CANCELLED: null,
 };
 
-const ALL_STATUSES = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"];
+const ALL_STATUSES = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "CANCELLED"];
 
 // ─── Status Stepper ──────────────────────────────────────────────────────────
 
@@ -172,32 +190,29 @@ function StatusStepper({ currentStatus }: { currentStatus: string }) {
               {/* Step */}
               <div className="flex flex-col items-center gap-2 z-10">
                 <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black border-2 transition-all ${
-                    isComplete
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-black border-2 transition-all ${isComplete
                       ? "bg-green-500 border-green-500 text-white shadow-lg shadow-green-200"
                       : isCurrent
-                      ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-red-200 ring-4 ring-red-100"
-                      : "bg-white border-gray-200 text-gray-300"
-                  }`}
+                        ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-red-200 ring-4 ring-red-100"
+                        : "bg-white border-gray-200 text-gray-300"
+                    }`}
                 >
                   {isComplete ? "✓" : step.icon}
                 </div>
                 <div className="text-center">
                   <p
-                    className={`text-xs font-black whitespace-nowrap ${
-                      isComplete || isCurrent ? "text-gray-900" : "text-gray-300"
-                    }`}
+                    className={`text-xs font-black whitespace-nowrap ${isComplete || isCurrent ? "text-gray-900" : "text-gray-300"
+                      }`}
                   >
                     {step.label}
                   </p>
                   <p
-                    className={`text-[10px] font-medium whitespace-nowrap hidden sm:block ${
-                      isCurrent
+                    className={`text-[10px] font-medium whitespace-nowrap hidden sm:block ${isCurrent
                         ? "text-[var(--color-primary)]"
                         : isComplete
-                        ? "text-green-600"
-                        : "text-gray-300"
-                    }`}
+                          ? "text-green-600"
+                          : "text-gray-300"
+                      }`}
                   >
                     {isCurrent ? "● Current" : isComplete ? "Done" : step.desc}
                   </p>
@@ -209,9 +224,8 @@ function StatusStepper({ currentStatus }: { currentStatus: string }) {
                 <div className="flex-1 mt-6 mx-2">
                   <div className="h-0.5 w-full rounded-full bg-gray-100 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        i < currentIdx ? "bg-green-400 w-full" : "w-0"
-                      }`}
+                      className={`h-full rounded-full transition-all duration-700 ${i < currentIdx ? "bg-green-400 w-full" : "w-0"
+                        }`}
                     />
                   </div>
                 </div>
@@ -469,11 +483,10 @@ export default function AdminOrderDetailPage() {
                           key={s}
                           onClick={() => updateStatus(s)}
                           disabled={s === order.status}
-                          className={`w-full px-4 py-2.5 text-left text-sm font-bold transition-colors flex items-center gap-2 ${
-                            s === order.status
+                          className={`w-full px-4 py-2.5 text-left text-sm font-bold transition-colors flex items-center gap-2 ${s === order.status
                               ? "opacity-40 cursor-not-allowed bg-gray-50"
                               : "hover:bg-gray-50"
-                          } ${m.text}`}
+                            } ${m.text}`}
                         >
                           <span className="text-base">
                             {STATUS_STEPS.find((x) => x.id === s)?.icon ?? "❌"}
@@ -507,11 +520,10 @@ export default function AdminOrderDetailPage() {
         {/* Feedback */}
         {(updateError || updateSuccess) && (
           <div
-            className={`mt-4 px-4 py-3 rounded-xl text-sm font-medium ${
-              updateError
+            className={`mt-4 px-4 py-3 rounded-xl text-sm font-medium ${updateError
                 ? "bg-red-50 border border-red-200 text-red-700"
                 : "bg-green-50 border border-green-200 text-green-700"
-            }`}
+              }`}
           >
             {updateError || `✅ ${updateSuccess}`}
           </div>
@@ -537,10 +549,10 @@ export default function AdminOrderDetailPage() {
               <p className={`font-black text-sm ${meta.text}`}>
                 {
                   {
-                    PLACED:    "Order has been placed successfully and is awaiting confirmation.",
+                    PLACED: "Order has been placed successfully and is awaiting confirmation.",
                     CONFIRMED: "Order has been confirmed. Getting items ready for packing.",
-                    PACKED:    "All items are packed and ready for handover to delivery.",
-                    SHIPPED:   "Order is out for delivery with the courier partner.",
+                    PACKED: "All items are packed and ready for handover to delivery.",
+                    SHIPPED: "Order is out for delivery with the courier partner.",
                     DELIVERED: "Order was delivered successfully. 🎉",
                   }[order.status]
                 }
@@ -768,11 +780,10 @@ export default function AdminOrderDetailPage() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-400 font-bold uppercase tracking-wider">Age Consent</span>
                 <span
-                  className={`font-black px-2 py-0.5 rounded-lg ${
-                    order.ageConsent
+                  className={`font-black px-2 py-0.5 rounded-lg ${order.ageConsent
                       ? "text-green-700 bg-green-50"
                       : "text-red-700 bg-red-50"
-                  }`}
+                    }`}
                 >
                   {order.ageConsent ? "✓ Yes" : "✗ No"}
                 </span>
@@ -794,11 +805,10 @@ export default function AdminOrderDetailPage() {
                 <button
                   onClick={toggleReturnEligible}
                   disabled={updating}
-                  className={`font-black px-3 py-1 rounded-lg text-xs uppercase tracking-wider transition-colors ${
-                    order.returnEligible
+                  className={`font-black px-3 py-1 rounded-lg text-xs uppercase tracking-wider transition-colors ${order.returnEligible
                       ? "text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200"
                       : "text-gray-500 bg-gray-100 hover:bg-gray-200 border border-gray-200"
-                  } disabled:opacity-50`}
+                    } disabled:opacity-50`}
                 >
                   {order.returnEligible ? "Yes" : "No"}
                 </button>

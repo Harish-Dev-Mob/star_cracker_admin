@@ -271,7 +271,6 @@ export default function AdminCategoriesPage() {
             <table className="w-full text-sm text-left text-gray-600">
               <thead className="text-xs text-gray-400 uppercase bg-gray-50/50 border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-4 font-bold tracking-wider w-20">Icon</th>
                   <th className="px-6 py-4 font-bold tracking-wider">Category Name</th>
                   <th className="px-6 py-4 font-bold tracking-wider text-center">Products</th>
                   <th className="px-6 py-4 font-bold tracking-wider text-center">Order</th>
@@ -301,12 +300,6 @@ export default function AdminCategoriesPage() {
                       key={cat.id}
                       className="hover:bg-rose-50/30 transition-colors group"
                     >
-                      {/* Icon */}
-                      <td className="px-6 py-4 text-center">
-                        <div className="h-12 w-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner mx-auto">
-                          {cat.icon || "📁"}
-                        </div>
-                      </td>
 
                       {/* Name + slug */}
                       <td className="px-6 py-4">
@@ -472,38 +465,6 @@ export default function AdminCategoriesPage() {
                 />
               </div>
 
-              {/* Icon */}
-              <div>
-                <label htmlFor="cat-icon" className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
-                  Icon (emoji)
-                </label>
-                <input
-                  id="cat-icon"
-                  type="text"
-                  value={form.icon}
-                  onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-                  placeholder="🎆"
-                  maxLength={4}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-2xl font-medium focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-400 transition-colors"
-                />
-                {/* Quick picks */}
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {POPULAR_ICONS.map((em) => (
-                    <button
-                      type="button"
-                      key={em}
-                      onClick={() => setForm((f) => ({ ...f, icon: em }))}
-                      className={`w-9 h-9 rounded-lg border text-xl flex items-center justify-center transition-all hover:scale-110 ${
-                        form.icon === em
-                          ? "border-red-400 bg-red-50 shadow-sm"
-                          : "border-gray-100 bg-gray-50 hover:border-gray-200"
-                      }`}
-                    >
-                      {em}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               {/* Sort order + Active in a row */}
               <div className="grid grid-cols-2 gap-4">

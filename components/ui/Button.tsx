@@ -51,6 +51,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || isLoading}
+        suppressHydrationWarning
         className={cn(
           // Base
           "inline-flex items-center justify-center font-semibold rounded-[var(--radius-md)]",

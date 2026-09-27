@@ -37,6 +37,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
+            suppressHydrationWarning
             className={cn(
               "w-full h-12 px-4 rounded-xl text-base font-medium",
               "bg-white",

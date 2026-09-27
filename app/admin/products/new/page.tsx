@@ -8,7 +8,7 @@ export default async function AdminProductCreatePage() {
   });
 
   return (
-    <div className="max-w-5xl mx-auto pb-8">
+    <div className="max-w-5xl mx-auto">
       <ProductCreateForm categories={categories} />
     </div>
   );

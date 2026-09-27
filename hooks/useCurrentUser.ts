@@ -21,11 +21,11 @@ export function useCurrentUser() {
 
   const user = session?.user
     ? ({
-        id: (session.user as { id?: string }).id ?? "",
-        name: session.user.name ?? "",
-        email: session.user.email,
-        role: ((session.user as { role?: string }).role ?? "CUSTOMER") as CurrentUser["role"],
-      } satisfies CurrentUser)
+      id: (session.user as { id?: string }).id ?? "",
+      name: session.user.name ?? "",
+      email: session.user.email,
+      role: ((session.user as { role?: string }).role ?? "CUSTOMER") as CurrentUser["role"],
+    } satisfies CurrentUser)
     : null;
 
   return {
