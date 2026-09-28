@@ -15,7 +15,7 @@ export default async function AdminLayout({
 
   return (
     <div
-      className="flex h-screen bg-[#F8FAFC] [color-scheme:light] text-gray-900"
+      className="flex h-[100dvh] w-full overflow-hidden bg-[#F8FAFC] [color-scheme:light] text-gray-900"
       style={{
         ["--color-border" as string]: "#E8D5C4",
         ["--color-border-focus" as string]: "#B91C1C",
@@ -28,7 +28,7 @@ export default async function AdminLayout({
       <AdminSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Spacer for fixed mobile header */}
         <div className="lg:hidden h-16 shrink-0" />
 

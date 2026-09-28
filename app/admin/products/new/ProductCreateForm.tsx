@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createProduct, updateProduct } from "./actions";
+import { createProduct, updateProduct, uploadImage } from "./actions";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
 
@@ -40,6 +40,7 @@ export default function ProductCreateForm({
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState(initialData || {
     name: "",
     slug: "",
@@ -107,6 +108,42 @@ export default function ProductCreateForm({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    setIsUploading(true);
+    try {
+      for (let i = 0; i < e.target.files.length; i++) {
+        const file = e.target.files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await uploadImage(formData);
+        if (res.success && res.url) {
+          setFormData(prev => ({
+            ...prev,
+            images: prev.images ? `${prev.images}, ${res.url}` : res.url
+          }));
+          toast.success("Uploaded", `Image ${file.name} uploaded successfully.`);
+        } else {
+          toast.error("Upload Failed", res.error || "Failed to upload image.");
+        }
+      }
+    } catch (err: any) {
+      toast.error("Error", err.message || "Failed to upload image");
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      e.target.value = '';
+    }
+  };
+
+  const removeImage = (indexToRemove: number) => {
+    setFormData(prev => {
+      const currentImages = prev.images.split(",").map(url => url.trim()).filter(url => url !== "");
+      currentImages.splice(indexToRemove, 1);
+      return { ...prev, images: currentImages.join(", ") };
+    });
   };
 
   return (
@@ -178,14 +215,49 @@ export default function ProductCreateForm({
           <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
             Images (Comma separated URLs) *
           </label>
-          <input
-            type="text"
-            required
-            className="w-full px-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all font-medium"
-            value={formData.images}
-            onChange={(e) => setFormData({ ...formData, images: e.target.value })}
-            placeholder="/images/products/sparkler.jpg, ..."
-          />
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-4">
+              <label className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-[var(--color-primary)] text-white px-6 py-3 text-sm font-bold hover:bg-[var(--color-primary-dark)] transition-all shadow-md shadow-[var(--color-primary)]/20 hover:shadow-lg">
+                <span>{isUploading ? "Uploading..." : "➕ Upload Image(s)"}</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  disabled={isUploading}
+                />
+              </label>
+              {formData.images && (
+                <div className="text-xs text-gray-500 max-w-[200px] truncate">
+                  {formData.images.split(",").filter(u => u.trim()).length} image(s) uploaded
+                </div>
+              )}
+            </div>
+
+            {formData.images && formData.images.trim() !== "" && (
+              <div className="flex flex-wrap gap-4 mt-2">
+                {formData.images.split(",").map(url => url.trim()).filter(url => url !== "").map((url, idx) => (
+                  <div key={idx} className="relative group w-24 h-24 rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-gray-50">
+                    <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button 
+                        type="button" 
+                        onClick={() => removeImage(idx)}
+                        className="bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-black hover:bg-red-600 hover:scale-110 transition-transform shadow-lg"
+                        title="Remove Image"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* Hidden input to ensure validation passes if required */}
+            <input type="hidden" required value={formData.images} />
+          </div>
         </div>
       </div>
 

@@ -80,7 +80,7 @@ function LoginFormInner() {
             <Input
               name="identifier"
               label="Email or Phone"
-              placeholder="admin@firecrackers.in or 9876543210"
+              placeholder="Enter your email or phone number"
               error={errors.identifier}
               className="bg-transparent text-black"
               required
@@ -106,11 +106,6 @@ function LoginFormInner() {
           </div>
         </form>
 
-        {/* Demo credentials notice */}
-        <div className="mt-6 p-4 rounded-[var(--radius-md)] bg-blue-50 border border-blue-200 text-xs text-blue-800">
-          <p className="font-semibold mb-1">🔑 Admin Demo Credentials:</p>
-          <p>admin@firecrackers.in / Admin@123</p>
-        </div>
       </div>
     </div>
   );
