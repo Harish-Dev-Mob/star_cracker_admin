@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SITE_NAME } from "@/constants";
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 
 const ADMIN_NAV = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "📊" },
@@ -42,6 +43,19 @@ function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
           </Link>
         );
       })}
+      
+      <div className="pt-4 mt-4 border-t border-gray-100">
+        <button
+          onClick={() => {
+            if (onLinkClick) onLinkClick();
+            signOut({ callbackUrl: "/login" });
+          }}
+          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-[var(--radius-md)] text-sm font-medium transition-colors text-red-600 hover:bg-red-50 hover:text-red-700"
+        >
+          <span className="text-base">🚪</span>
+          Logout
+        </button>
+      </div>
     </nav>
   );
 }
