@@ -10,7 +10,10 @@ export default async function AdminLayout({
 }) {
   const session = await auth();
   if (!session || session.user.role !== "ADMIN") {
-    redirect("/login");
+    // Use a specific error code so the login page doesn't redirect back
+    // to /admin/dashboard and create an infinite loop when the session
+    // is stale or the JWT secret mismatches.
+    redirect("/login?error=session_expired");
   }
 
   return (

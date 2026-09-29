@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { AdminLinkBtn, PaginationBar } from "@/components/admin/AdminActions";
+import { GroupedOrderRow } from "@/components/admin/GroupedOrderRow";
 
 const PAGE_SIZE = 15;
 
@@ -52,6 +53,28 @@ export default async function AdminOrdersPage({
     acc[o.status] = (acc[o.status] ?? 0) + 1;
     return acc;
   }, {});
+
+  // Group orders by user
+  const groupedOrdersObj = orders.reduce((acc, order) => {
+    if (!acc[order.userId]) {
+      acc[order.userId] = {
+        userId: order.userId,
+        user: order.user,
+        latestOrderDate: order.createdAt,
+        totalSpent: 0,
+        totalItems: 0,
+        orders: [],
+      };
+    }
+    acc[order.userId].orders.push(order);
+    acc[order.userId].totalSpent += order.total;
+    acc[order.userId].totalItems += order.orderItems.reduce((s, i) => s + i.quantity, 0);
+    return acc;
+  }, {} as Record<string, any>);
+
+  const groupedOrders = Object.values(groupedOrdersObj).sort(
+    (a: any, b: any) => new Date(b.latestOrderDate).getTime() - new Date(a.latestOrderDate).getTime()
+  );
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
@@ -116,7 +139,7 @@ export default async function AdminOrdersPage({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {orders.length === 0 ? (
+              {groupedOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-16 text-center">
                     <span className="text-4xl block mb-3">📦</span>
@@ -124,73 +147,9 @@ export default async function AdminOrdersPage({
                   </td>
                 </tr>
               ) : (
-                orders.map((order) => {
-                  const m = STATUS_META[order.status] ?? STATUS_META.PLACED;
-                  const itemCount = order.orderItems.reduce((s, i) => s + i.quantity, 0);
-                  return (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-indigo-50/30 transition-colors group"
-                    >
-                      {/* Order ID */}
-                      <td className="px-6 py-5">
-                        <p className="font-mono text-xs font-black text-gray-500 group-hover:text-gray-900 transition-colors">
-                          #{order.id.slice(-8).toUpperCase()}
-                        </p>
-                      </td>
-
-                      {/* Customer */}
-                      <td className="px-6 py-5">
-                        <p className="font-bold text-gray-900">{order.user.name}</p>
-                        <p className="text-xs text-gray-400 font-medium mt-0.5">
-                          {order.user.phone ?? order.user.email ?? "—"}
-                        </p>
-                      </td>
-
-                      {/* Date */}
-                      <td className="px-6 py-5 text-gray-500 font-medium whitespace-nowrap">
-                        {new Date(order.createdAt).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </td>
-
-                      {/* Items count */}
-                      <td className="px-6 py-5">
-                        <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-bold">
-                          {itemCount} item{itemCount > 1 ? "s" : ""}
-                        </span>
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-6 py-5">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${m.badge}`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${m.dot}`} />
-                          {order.status}
-                        </span>
-                      </td>
-
-                      {/* Total */}
-                      <td className="px-6 py-5 text-right font-black text-gray-900 text-base">
-                        {formatPrice(order.total)}
-                      </td>
-
-                      {/* Action */}
-                      <td className="px-6 py-5 text-center">
-                        <AdminLinkBtn
-                          href={`/admin/orders/${order.id}`}
-                          id={`btn-view-order-${order.id}`}
-                          variant="view"
-                        >
-                          View
-                        </AdminLinkBtn>
-                      </td>
-                    </tr>
-                  );
-                })
+                groupedOrders.map((group: any) => (
+                  <GroupedOrderRow key={group.userId} group={group} />
+                ))
               )}
             </tbody>
           </table>

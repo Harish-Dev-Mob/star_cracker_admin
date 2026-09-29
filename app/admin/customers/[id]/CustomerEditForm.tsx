@@ -19,6 +19,7 @@ export default function CustomerEditForm({ customer }: { customer: CustomerProps
     name: customer.name,
     email: customer.email || "",
     phone: customer.phone || "",
+    newPassword: "",
     role: customer.role,
     isBlocked: customer.isBlocked,
   });
@@ -64,18 +65,6 @@ export default function CustomerEditForm({ customer }: { customer: CustomerProps
 
         <div>
           <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-            Email Address
-          </label>
-          <input
-            type="email"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all font-medium"
-            value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
             Phone Number
           </label>
           <input
@@ -98,6 +87,37 @@ export default function CustomerEditForm({ customer }: { customer: CustomerProps
             <option value="CUSTOMER">Customer</option>
             <option value="ADMIN">Admin</option>
           </select>
+        </div>
+      </div>
+
+      <div className="mt-8 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+        <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <span>🔐</span> Login Credentials
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all font-medium"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+              New Password <span className="text-gray-400 font-normal text-xs">(optional, leave blank to keep current)</span>
+            </label>
+            <input
+              type="password"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all font-medium placeholder-gray-400"
+              placeholder="••••••••"
+              value={formData.newPassword}
+              onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+            />
+          </div>
         </div>
       </div>
 

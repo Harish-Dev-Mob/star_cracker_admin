@@ -26,7 +26,8 @@ interface FormState {
 
 interface TopBannerState {
   topBannerEnabled: string;
-  topBannerText: string;
+  topBannerTexts: string[];
+  marqueeSecondaryText: string;
 }
 
 const EMPTY_FORM: FormState = {
@@ -137,7 +138,8 @@ export default function AdminBannersPage() {
   // Top Banner (Promo Bar)
   const [topBanner, setTopBanner] = useState<TopBannerState>({
     topBannerEnabled: "true",
-    topBannerText: "Festival Sale is LIVE! Up to 40% OFF on all Crackers",
+    topBannerTexts: ["Festival Sale is LIVE! Up to 40% OFF on all Crackers"],
+    marqueeSecondaryText: "Shop Now & Celebrate Big!",
   });
   const [topBannerLoading, setTopBannerLoading] = useState(true);
   const [topBannerSaving, setTopBannerSaving] = useState(false);
@@ -179,9 +181,20 @@ export default function AdminBannersPage() {
         const res = await fetch("/api/admin/settings");
         if (!res.ok) return;
         const data = await res.json();
+        let parsedTexts = ["Festival Sale is LIVE! Up to 40% OFF on all Crackers"];
+        if (data.topBannerText) {
+          try {
+            const parsed = JSON.parse(data.topBannerText);
+            if (Array.isArray(parsed)) parsedTexts = parsed;
+            else parsedTexts = [data.topBannerText];
+          } catch {
+            parsedTexts = [data.topBannerText];
+          }
+        }
         setTopBanner({
           topBannerEnabled: data.topBannerEnabled ?? "true",
-          topBannerText: data.topBannerText ?? "Festival Sale is LIVE! Up to 40% OFF on all Crackers",
+          topBannerTexts: parsedTexts,
+          marqueeSecondaryText: data.marqueeSecondaryText ?? "Shop Now & Celebrate Big!",
         });
       } catch {
         /* silent */
@@ -198,10 +211,15 @@ export default function AdminBannersPage() {
     e.preventDefault();
     setTopBannerSaving(true);
     try {
+      const payload = {
+        topBannerEnabled: topBanner.topBannerEnabled,
+        topBannerText: JSON.stringify(topBanner.topBannerTexts.filter(t => t.trim() !== "")),
+        marqueeSecondaryText: topBanner.marqueeSecondaryText,
+      };
       const res = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(topBanner),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error();
       toast.success("Top banner saved successfully!");
@@ -363,21 +381,6 @@ export default function AdminBannersPage() {
           </div>
         </div>
 
-        {/* Live Preview */}
-        <div className="px-8 pt-6">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Live Preview</p>
-          <div className={`rounded-xl overflow-hidden transition-all duration-300 ${topBanner.topBannerEnabled !== "true" ? "opacity-40 grayscale" : ""}`}>
-            <div className="bg-gradient-to-r from-orange-500 via-red-600 to-orange-500 text-white text-xs font-bold tracking-widest py-2.5 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/10 bg-[length:20px_20px] bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.2)_50%,transparent_75%,transparent_100%)]" />
-              <span className="relative z-10 flex items-center justify-center gap-2 uppercase">
-                <span className="text-sm">✨</span>
-                {topBanner.topBannerText || "Your promo text will appear here…"}
-                <span className="text-sm">✨</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* Form */}
         {topBannerLoading ? (
           <div className="px-8 py-8 flex items-center gap-3 text-gray-400">
@@ -414,27 +417,81 @@ export default function AdminBannersPage() {
               />
             </div>
 
-            {/* Banner Text */}
+            {/* Banner Texts (Multiple) */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                  <span>💬</span> Promo Updates <span className="text-red-500">*</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setTopBanner((prev) => ({
+                      ...prev,
+                      topBannerTexts: [...prev.topBannerTexts, ""],
+                    }))
+                  }
+                  className="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-1"
+                >
+                  <span className="text-lg leading-none">+</span> Add Update
+                </button>
+              </div>
+              <div className="space-y-3">
+                {topBanner.topBannerTexts.map((text, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={text}
+                      onChange={(e) => {
+                        const newTexts = [...topBanner.topBannerTexts];
+                        newTexts[idx] = e.target.value;
+                        setTopBanner((prev) => ({ ...prev, topBannerTexts: newTexts }));
+                      }}
+                      placeholder={`Update #${idx + 1}`}
+                      required
+                      className="flex-1 px-4 py-3 h-12 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#B91C1C] focus:shadow-[0_0_0_3px_rgba(185,28,28,0.12)] transition-all placeholder:text-gray-400 bg-white"
+                    />
+                    {topBanner.topBannerTexts.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newTexts = topBanner.topBannerTexts.filter((_, i) => i !== idx);
+                          setTopBanner((prev) => ({ ...prev, topBannerTexts: newTexts }));
+                        }}
+                        className="shrink-0 w-12 h-12 flex items-center justify-center rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors"
+                        title="Remove"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="mt-1.5 text-xs text-gray-400">
+                These updates will scroll sequentially in the marquee strip.
+              </p>
+            </div>
+
+            {/* Marquee Secondary Text */}
             <div>
               <label
-                htmlFor="top-banner-text"
+                htmlFor="marquee-secondary-text"
                 className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2"
               >
-                <span>💬</span> Banner Text <span className="text-red-500">*</span>
+                <span>✨</span> Secondary Marquee Text <span className="text-gray-400 font-normal normal-case">(Optional)</span>
               </label>
               <input
-                id="top-banner-text"
+                id="marquee-secondary-text"
                 type="text"
-                value={topBanner.topBannerText}
+                value={topBanner.marqueeSecondaryText}
                 onChange={(e) =>
-                  setTopBanner((prev) => ({ ...prev, topBannerText: e.target.value }))
+                  setTopBanner((prev) => ({ ...prev, marqueeSecondaryText: e.target.value }))
                 }
-                placeholder="e.g. Festival Sale is LIVE! Up to 40% OFF on all Crackers"
-                required
+                placeholder="e.g. Shop Now & Celebrate Big!"
                 className="w-full px-4 py-3 h-12 rounded-xl border-2 border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:border-[#B91C1C] focus:shadow-[0_0_0_3px_rgba(185,28,28,0.12)] transition-all placeholder:text-gray-400 bg-white"
               />
               <p className="mt-1.5 text-xs text-gray-400">
-                Keep it short and punchy — displayed across the full width of the site.
+                This appears in the scrolling banner alongside the starting price.
               </p>
             </div>
 

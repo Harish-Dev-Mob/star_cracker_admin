@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CustomerEditForm from "./CustomerEditForm";
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 }).format(n);
@@ -48,6 +49,9 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
         </div>
       </div>
 
+      {/* Edit Form */}
+      <CustomerEditForm customer={customer} />
+
       <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
         <div className="p-6 border-b border-gray-100">
           <h2 className="text-xl font-bold font-display text-gray-900">Order History</h2>
@@ -61,12 +65,13 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
                 <th className="px-6 py-4 font-bold tracking-wider">Items</th>
                 <th className="px-6 py-4 font-bold tracking-wider">Status</th>
                 <th className="px-6 py-4 font-bold tracking-wider text-right">Total</th>
+                <th className="px-6 py-4 font-bold tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {customer.orders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/50">No orders found.</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/50">No orders found.</td>
                 </tr>
               ) : (
                 customer.orders.map((order) => {
@@ -88,6 +93,11 @@ export default async function CustomerDetailPage(props: { params: Promise<{ id: 
                         </span>
                       </td>
                       <td className="px-6 py-5 text-right font-black text-gray-900 text-base">{formatPrice(order.total)}</td>
+                      <td className="px-6 py-5 text-right">
+                        <Link href={`/admin/orders/${order.id}`} className="inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-indigo-600 font-bold text-sm rounded-xl hover:bg-indigo-100 transition-colors">
+                          View
+                        </Link>
+                      </td>
                     </tr>
                   )
                 })

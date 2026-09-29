@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { GroupedOrderRow } from "@/components/admin/GroupedOrderRow";
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 }).format(n);
@@ -21,11 +22,36 @@ export default async function AdminDashboard() {
     prisma.product.count(),
     prisma.user.count({ where: { role: "CUSTOMER" } }),
     prisma.order.findMany({
-      take: 5,
+      take: 20,
       orderBy: { createdAt: "desc" },
-      include: { user: { select: { name: true, email: true } } }
+      include: { 
+        user: { select: { name: true, email: true, phone: true } },
+        orderItems: { select: { quantity: true } }
+      }
     })
   ]);
+
+  // Group recent orders by customer
+  const groupedOrdersObj = recentOrders.reduce((acc, order) => {
+    if (!acc[order.userId]) {
+      acc[order.userId] = {
+        userId: order.userId,
+        user: order.user,
+        latestOrderDate: order.createdAt,
+        totalSpent: 0,
+        totalItems: 0,
+        orders: [],
+      };
+    }
+    acc[order.userId].orders.push(order);
+    acc[order.userId].totalSpent += order.total;
+    acc[order.userId].totalItems += order.orderItems.reduce((s, i) => s + i.quantity, 0);
+    return acc;
+  }, {} as Record<string, any>);
+
+  const groupedRecentOrders = Object.values(groupedOrdersObj)
+    .sort((a: any, b: any) => new Date(b.latestOrderDate).getTime() - new Date(a.latestOrderDate).getTime())
+    .slice(0, 5); // Take top 5 recent customer groups
 
   const stats = [
     { label: "Total Revenue", value: formatPrice(totalRevenueData._sum.total || 0), icon: "💰", color: "bg-green-100 text-green-700" },
@@ -85,38 +111,25 @@ export default async function AdminDashboard() {
           <table className="w-full text-sm text-left text-gray-600">
             <thead className="text-xs text-gray-400 uppercase bg-white border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4 font-bold tracking-wider">Order ID</th>
+                <th className="px-6 py-4 font-bold tracking-wider">Orders</th>
                 <th className="px-6 py-4 font-bold tracking-wider">Customer</th>
                 <th className="px-6 py-4 font-bold tracking-wider">Date</th>
+                <th className="px-6 py-4 font-bold tracking-wider">Items</th>
                 <th className="px-6 py-4 font-bold tracking-wider">Status</th>
                 <th className="px-6 py-4 font-bold tracking-wider text-right">Total</th>
+                <th className="px-6 py-4 font-bold tracking-wider text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {recentOrders.length === 0 ? (
+              {groupedRecentOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/50">
+                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/50">
                     No recent orders found.
                   </td>
                 </tr>
               ) : (
-                recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-orange-50/30 transition-colors group">
-                    <td className="px-6 py-5 font-mono text-xs font-bold text-gray-500 group-hover:text-gray-900">
-                      #{order.id.slice(-8)}
-                    </td>
-                    <td className="px-6 py-5 font-bold text-gray-900">{order.user.name}</td>
-                    <td className="px-6 py-5 font-medium">{new Date(order.createdAt).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                    <td className="px-6 py-5">
-                      <span className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm
-                        ${order.status === 'DELIVERED' ? 'bg-green-100 text-green-700 border border-green-200' : 
-                          order.status === 'CANCELLED' ? 'bg-red-100 text-red-700 border border-red-200' : 
-                          'bg-amber-100 text-amber-700 border border-amber-200'}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 text-right font-black text-gray-900 text-base">{formatPrice(order.total)}</td>
-                  </tr>
+                groupedRecentOrders.map((group: any) => (
+                  <GroupedOrderRow key={group.userId} group={group} />
                 ))
               )}
             </tbody>

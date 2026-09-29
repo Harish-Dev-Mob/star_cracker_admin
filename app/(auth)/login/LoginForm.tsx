@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/Input";
@@ -14,6 +14,20 @@ function LoginFormInner() {
   const callbackUrl = searchParams.get("callbackUrl") ?? "/admin/dashboard";
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [banner, setBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "not_admin") {
+      setBanner(
+        "Access denied. Only admin accounts can access the Admin Portal."
+      );
+    } else if (error === "session_expired") {
+      setBanner(
+        "Your session has expired. Please sign in again to continue."
+      );
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,12 +59,30 @@ function LoginFormInner() {
     });
 
     if (result?.error) {
-      toast.error("Login failed", "Invalid email/phone or password");
+      toast.error(
+        "Access denied",
+        "Only admin accounts can login to the Admin Portal"
+      );
       setLoading(false);
       return;
     }
 
-    toast.success("Welcome back!", "You've been signed in successfully");
+    // Verify the session role is actually ADMIN before redirecting
+    const sessionRes = await fetch("/api/auth/session");
+    const session = await sessionRes.json();
+
+    if (session?.user?.role !== "ADMIN") {
+      // Not an admin — sign them out and reject
+      await fetch("/api/auth/signout", { method: "POST" });
+      setErrors({
+        identifier:
+          "This is a customer account. Please use the Customer Portal to login.",
+      });
+      setLoading(false);
+      return;
+    }
+
+    toast.success("Welcome, Admin!", "You've been signed in successfully");
     router.push(callbackUrl);
     router.refresh();
   };
@@ -71,6 +103,14 @@ function LoginFormInner() {
             Secure login for administrators
           </p>
         </div>
+
+        {/* Access denied banner */}
+        {banner && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 flex items-start gap-3">
+            <span className="text-red-500 text-lg mt-0.5">🚫</span>
+            <p className="text-sm text-red-700 font-medium">{banner}</p>
+          </div>
+        )}
 
         <form
           onSubmit={handleSubmit}

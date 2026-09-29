@@ -22,6 +22,7 @@ export async function GET() {
     "freeDeliveryThreshold",
     "topBannerEnabled",
     "topBannerText",
+    "marqueeSecondaryText",
   ];
 
   const settings = await prisma.siteConfig.findMany({

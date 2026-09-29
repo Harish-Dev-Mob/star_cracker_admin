@@ -18,6 +18,7 @@ interface Settings {
   freeDeliveryThreshold: string;
   topBannerEnabled: string;
   topBannerText: string;
+  marqueeSecondaryText: string;
 }
 
 export default function SettingsPage() {
@@ -36,6 +37,7 @@ export default function SettingsPage() {
     freeDeliveryThreshold: "999",
     topBannerEnabled: "true",
     topBannerText: "Festival Sale is LIVE! Up to 40% OFF on all Crackers",
+    marqueeSecondaryText: "Shop Now & Celebrate Big!",
   });
 
   const [loading, setLoading] = useState(true);
@@ -245,26 +247,6 @@ export default function SettingsPage() {
               <p className="text-xs text-gray-500 mt-2 font-medium">
                 Orders above this amount get free delivery. Set 0 to always charge.
               </p>
-            </div>
-            <div className="md:col-span-2 flex items-center gap-3 p-4 rounded-xl border border-gray-200 bg-gray-50 mt-2">
-              <input
-                type="checkbox"
-                id="selfPickupEnabled"
-                checked={settings.selfPickupEnabled === "true"}
-                onChange={(e) =>
-                  handleChange(
-                    "selfPickupEnabled",
-                    e.target.checked ? "true" : "false",
-                  )
-                }
-                className="w-5 h-5 rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
-              />
-              <label
-                htmlFor="selfPickupEnabled"
-                className="text-sm font-bold text-gray-900 cursor-pointer select-none"
-              >
-                Enable Self-Pickup Option at Checkout
-              </label>
             </div>
           </div>
         </div>

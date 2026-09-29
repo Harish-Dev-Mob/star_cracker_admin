@@ -1,17 +1,16 @@
-import { auth } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
 
-// Server component: verifies JWT in Node.js runtime (not Edge).
-// If the user already has a valid session, redirect them to the dashboard.
-// This prevents the redirect loop caused by stale cookies in the Edge proxy.
-export default async function LoginPage() {
-  const session = await auth();
-  if (session?.user?.role === "ADMIN") {
-    redirect("/admin/dashboard");
-  }
-
+/**
+ * Login page — kept intentionally simple.
+ *
+ * Redirect logic lives in proxy.ts (Edge, fast):
+ *   - Verified ADMIN + no error param → sent straight to /admin/dashboard
+ *   - Not logged in → allowed to see this page
+ *   - admin/layout.tsx sends ?error=session_expired here when the session
+ *     is stale, which the LoginForm shows as a banner.
+ */
+export default function LoginPage() {
   return (
     <Suspense
       fallback={
@@ -24,3 +23,4 @@ export default async function LoginPage() {
     </Suspense>
   );
 }
+

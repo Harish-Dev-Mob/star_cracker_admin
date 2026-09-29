@@ -16,7 +16,6 @@ const SEGMENT_LABELS: Record<string, string> = {
   banners: "Banners",
   reviews: "Reviews",
   "delivery-zones": "Delivery Zones",
-  "pickup-locations": "Pickup Locations",
   settings: "Settings",
   profile: "Profile",
   combos: "Combos",

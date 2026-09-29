@@ -17,7 +17,6 @@ const ADMIN_NAV = [
   { href: "/admin/banners", label: "Banners", icon: "🖼️" },
   { href: "/admin/reviews", label: "Reviews", icon: "⭐" },
   { href: "/admin/delivery-zones", label: "Delivery", icon: "🚚" },
-  { href: "/admin/pickup-locations", label: "Pickups", icon: "🏪" },
   { href: "/admin/settings", label: "Settings", icon: "⚙️" },
 ];
 
