@@ -614,7 +614,7 @@ export default function BulkUploadForm() {
             <Button
               onClick={() => handleSubmit("replace")}
               disabled={isSubmitting}
-              variant="outline"
+              variant="secondary"
               className="px-6 h-12 rounded-xl text-sm font-bold shadow-sm text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
             >
               {isSubmitting ? "Wait…" : `🗑️ Replace All with ${parsedRows.length} Products`}
