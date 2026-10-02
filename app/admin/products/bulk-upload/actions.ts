@@ -216,14 +216,14 @@ export async function bulkCreateProductsFromExcel(rows: ExcelProductRow[], mode:
     }
 
     let inserted = 0;
-    let skipped  = 0;
+    let skipped = 0;
 
     for (const row of rows) {
       const categoryId = categoryIdMap[row.categoryName.trim()];
       if (!categoryId) { skipped++; continue; }
 
       const baseSlug = slugify(row.name);
-      if (!baseSlug)  { skipped++; continue; }
+      if (!baseSlug) { skipped++; continue; }
 
       // Skip exact duplicates only if combining
       if (mode === "combine") {
@@ -241,23 +241,23 @@ export async function bulkCreateProductsFromExcel(rows: ExcelProductRow[], mode:
 
       await prisma.product.create({
         data: {
-          name:              row.name.trim(),
+          name: row.name.trim(),
           slug,
-          description:       row.description?.trim() || `${row.name.trim()} — ${row.unit || "1 PKT"}`,
-          price:             row.price,
-          discountPrice:     row.discountPrice     ?? null,
-          stock:             row.stock             ?? 100,
+          description: row.description?.trim() || `${row.name.trim()} — ${row.unit || "1 PKT"}`,
+          price: row.price,
+          discountPrice: row.discountPrice ?? null,
+          stock: row.stock ?? 100,
           lowStockThreshold: row.lowStockThreshold ?? 10,
           categoryId,
-          images:            JSON.stringify(imageArr),
-          isActive:          row.isActive          ?? true,   // auto-approve ✅
-          isCombo:           row.isCombo           ?? false,
-          isFeatured:        row.isFeatured        ?? false,
-          crackerType:       row.crackerType       || "TRADITIONAL",
-          gstRate:           row.gstRate           ?? 18,
-          hsnCode:           row.hsnCode           || null,
-          tags:              JSON.stringify(tagsArr),
-          weight:            row.unit              || null,
+          images: JSON.stringify(imageArr),
+          isActive: row.isActive ?? true,   // auto-approve ✅
+          isCombo: row.isCombo ?? false,
+          isFeatured: row.isFeatured ?? false,
+          crackerType: row.crackerType || "TRADITIONAL",
+          gstRate: row.gstRate ?? 18,
+          hsnCode: row.hsnCode || null,
+          tags: JSON.stringify(tagsArr),
+          weight: row.unit || null,
         },
       });
 

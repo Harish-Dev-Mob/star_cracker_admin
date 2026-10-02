@@ -143,25 +143,25 @@ export async function uploadImage(formData: FormData) {
     if (!file) {
       return { success: false, error: "No file provided" };
     }
-    
+
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
+
     const ext = path.extname(file.name);
     const filename = `${crypto.randomBytes(16).toString("hex")}${ext}`;
-    
+
     // Paths
     const mainWebsiteDir = path.join(process.cwd(), "..", "fire-cracker-website", "public", "images", "products");
     const adminWebsiteDir = path.join(process.cwd(), "public", "images", "products");
-    
+
     // Ensure directories exist
     await mkdir(mainWebsiteDir, { recursive: true });
     await mkdir(adminWebsiteDir, { recursive: true });
-    
+
     // Save to both the main website and the admin panel's public folder
     await writeFile(path.join(mainWebsiteDir, filename), buffer);
     await writeFile(path.join(adminWebsiteDir, filename), buffer);
-    
+
     const url = `/images/products/${filename}`;
     return { success: true, url };
   } catch (err: any) {
