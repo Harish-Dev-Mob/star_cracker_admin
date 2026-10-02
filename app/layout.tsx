@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://star-cracker-admin",
+    url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001",
     siteName: "StarCracker",
   },
 };

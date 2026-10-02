@@ -112,15 +112,15 @@ async function parseExcelFile(file: File): Promise<{
     if (i === 0) return; // skip header
 
     const col0 = row[0];  // A  Category / S.NO (legacy)
-    const col1 = String(row[1]  ?? "").trim(); // B  Product Name
+    const col1 = String(row[1] ?? "").trim(); // B  Product Name
     const col2 = row[2];  // C  Description  (or MRP in legacy)
     const col3 = row[3];  // D  MRP          (or Unit in legacy)
     const col4 = row[4];  // E  Sale Price
     const col5 = row[5];  // F  Unit / Weight (or Stock in legacy)
     const col6 = row[6];  // G  Stock
     const col7 = row[7];  // H  Low Stock Alert
-    const col8  = String(row[8]  ?? "").trim(); // I  Image URL 1
-    const col9  = String(row[9]  ?? "").trim(); // J  Image URL 2
+    const col8 = String(row[8] ?? "").trim(); // I  Image URL 1
+    const col9 = String(row[9] ?? "").trim(); // J  Image URL 2
     const col10 = String(row[10] ?? "").trim(); // K  Image URL 3
     const col11 = String(row[11] ?? "").trim(); // L  Is Active
     const col12 = String(row[12] ?? "").trim(); // M  Is Featured
@@ -161,16 +161,24 @@ async function parseExcelFile(file: File): Promise<{
 
     if (isLegacyRow) {
       // Legacy: A=S.NO, B=Name, C=MRP, D=Unit, E=SalePrice
-      price         = numOrDefault(col2, 0);
-      discountPrice = typeof col4 === "number" && col4 > 0 ? col4 : null;
-      unit          = String(col3 ?? "").trim() || "1 PKT";
-      description   = "";
+      const rawPrice = numOrDefault(col2, 0);
+      price = rawPrice; // Base price stays exactly as in Excel
+      
+      const rawDiscountPrice = typeof col4 === "number" && col4 > 0 ? col4 : null;
+      discountPrice = rawDiscountPrice ? Math.ceil(rawDiscountPrice * 1.05) : null;
+      
+      unit = String(col3 ?? "").trim() || "1 PKT";
+      description = "";
     } else {
       // New: A=empty, B=Name, C=Description, D=MRP, E=SalePrice, F=Unit
-      description   = String(col2 ?? "").trim();
-      price         = numOrDefault(col3, 0);
-      discountPrice = typeof col4 === "number" && col4 > 0 ? col4 : null;
-      unit          = String(col5 ?? "").trim() || "1 PKT";
+      description = String(col2 ?? "").trim();
+      const rawPrice = numOrDefault(col3, 0);
+      price = rawPrice; // Base price stays exactly as in Excel
+      
+      const rawDiscountPrice = typeof col4 === "number" && col4 > 0 ? col4 : null;
+      discountPrice = rawDiscountPrice ? Math.ceil(rawDiscountPrice * 1.05) : null;
+      
+      unit = String(col5 ?? "").trim() || "1 PKT";
     }
 
     if (price <= 0) {
@@ -178,20 +186,20 @@ async function parseExcelFile(file: File): Promise<{
       return;
     }
 
-    const stock             = isLegacyRow ? numOrDefault(col5, 100) : numOrDefault(col6, 100);
-    const lowStockThreshold = isLegacyRow ? 10                      : numOrDefault(col7, 10);
-    const images            = [col8, col9, col10].filter(Boolean);
-    const isActive          = isLegacyRow ? true : (col11 === "" ? true : yn(col11));
-    const isFeatured        = isLegacyRow ? false : yn(col12);
-    const isCombo           = isLegacyRow ? false : yn(col13);
-    const crackerType       = isLegacyRow ? "TRADITIONAL" : (col14.toUpperCase() === "GREEN" ? "GREEN" : "TRADITIONAL");
-    const gstRate           = isLegacyRow ? 18 : numOrDefault(col15, 18);
-    const hsnCode           = isLegacyRow ? "" : col16;
-    const tags              = isLegacyRow ? [] : col17.split(",").map((t) => t.trim()).filter(Boolean);
+    const stock = isLegacyRow ? numOrDefault(col5, 100) : numOrDefault(col6, 100);
+    const lowStockThreshold = isLegacyRow ? 10 : numOrDefault(col7, 10);
+    const images = [col8, col9, col10].filter(Boolean);
+    const isActive = isLegacyRow ? true : (col11 === "" ? true : yn(col11));
+    const isFeatured = isLegacyRow ? false : yn(col12);
+    const isCombo = isLegacyRow ? false : yn(col13);
+    const crackerType = isLegacyRow ? "TRADITIONAL" : (col14.toUpperCase() === "GREEN" ? "GREEN" : "TRADITIONAL");
+    const gstRate = isLegacyRow ? 18 : numOrDefault(col15, 18);
+    const hsnCode = isLegacyRow ? "" : col16;
+    const tags = isLegacyRow ? [] : col17.split(",").map((t) => t.trim()).filter(Boolean);
 
     rows.push({
-      name:             col1,
-      categoryName:     currentCategory,
+      name: col1,
+      categoryName: currentCategory,
       price,
       description,
       discountPrice,
@@ -237,12 +245,12 @@ export default function BulkUploadForm() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [parsedRows, setParsedRows]           = useState<ExcelProductRow[]>([]);
+  const [parsedRows, setParsedRows] = useState<ExcelProductRow[]>([]);
   const [parsedCategories, setParsedCategories] = useState<string[]>([]);
-  const [errors, setErrors]                   = useState<string[]>([]);
-  const [fileName, setFileName]               = useState<string>("");
-  const [isParsing, setIsParsing]             = useState(false);
-  const [isSubmitting, setIsSubmitting]       = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [fileName, setFileName] = useState<string>("");
+  const [isParsing, setIsParsing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ── File handler ───────────────────────────────────────────────────────────
 
@@ -274,11 +282,17 @@ export default function BulkUploadForm() {
 
   // ── Submit ─────────────────────────────────────────────────────────────────
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (mode: "combine" | "replace") => {
     if (parsedRows.length === 0) return;
+    
+    if (mode === "replace") {
+      const confirmReplace = window.confirm("⚠️ WARNING: This will delete ALL existing products in the store before uploading the new ones. Are you absolutely sure?");
+      if (!confirmReplace) return;
+    }
+
     setIsSubmitting(true);
     try {
-      const res = await bulkCreateProductsFromExcel(parsedRows);
+      const res = await bulkCreateProductsFromExcel(parsedRows, mode);
       if (res.success) {
         toast.success(
           "Upload Complete 🎉",
@@ -315,34 +329,38 @@ export default function BulkUploadForm() {
               Categories, slugs, and image arrays are handled <strong>automatically</strong>.
               All products are set to <strong>Active</strong> instantly — no extra approval needed.
             </p>
+            <div className="mb-4 inline-flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-bold shadow-sm">
+              <span>📈</span> 
+              <span>Automatic 5% Markup: The Sale Price (Discounted Price) is automatically increased by 5% when uploaded. The MRP stays exactly as typed.</span>
+            </div>
 
             {/* Full column reference */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-6">
               {[
-                { col: "A", name: "Category",        req: "section", note: "Category name row — leave blank on product rows" },
-                { col: "B", name: "Product Name",    req: true,      note: "Full name of the product" },
-                { col: "C", name: "Description",     req: false,     note: "Short description (auto-generated if blank)" },
-                { col: "D", name: "MRP (₹)",         req: true,      note: "Original list price (number, no ₹ sign)" },
-                { col: "E", name: "Sale Price (₹)",  req: false,     note: "Discounted price — leave blank = no discount" },
-                { col: "F", name: "Unit / Weight",   req: false,     note: "e.g. '1 PKT', '1 BOX', '500g'" },
-                { col: "G", name: "Stock",           req: false,     note: "Initial quantity (default: 100)" },
-                { col: "H", name: "Low Stock Alert", req: false,     note: "Alert when stock drops below this (default: 10)" },
-                { col: "I", name: "Image URL 1",     req: false,     note: "Main product image (public https:// URL or /images/…)" },
-                { col: "J", name: "Image URL 2",     req: false,     note: "Additional image (optional)" },
-                { col: "K", name: "Image URL 3",     req: false,     note: "Additional image (optional)" },
-                { col: "L", name: "Is Active",       req: false,     note: "'Yes' / 'No' — visible on shop (default: Yes)" },
-                { col: "M", name: "Is Featured",     req: false,     note: "'Yes' / 'No' — shown in featured sections (default: No)" },
-                { col: "N", name: "Is Combo",        req: false,     note: "'Yes' / 'No' — combo/gift-box product (default: No)" },
-                { col: "O", name: "Cracker Type",    req: false,     note: "'TRADITIONAL' or 'GREEN' (eco-friendly)" },
-                { col: "P", name: "GST Rate (%)",    req: false,     note: "5 / 12 / 18 / 28 (default: 18)" },
-                { col: "Q", name: "HSN Code",        req: false,     note: "HSN code for GST compliance (optional)" },
-                { col: "R", name: "Tags",            req: false,     note: "Comma-separated: 'diwali,popular,bestseller'" },
+                { col: "A", name: "Category", req: "section", note: "Category name row — leave blank on product rows" },
+                { col: "B", name: "Product Name", req: true, note: "Full name of the product" },
+                { col: "C", name: "Description", req: false, note: "Short description (auto-generated if blank)" },
+                { col: "D", name: "MRP (₹)", req: true, note: "Original list price (number, no ₹ sign)" },
+                { col: "E", name: "Sale Price (₹)", req: false, note: "Discounted price — leave blank = no discount" },
+                { col: "F", name: "Unit / Weight", req: false, note: "e.g. '1 PKT', '1 BOX', '500g'" },
+                { col: "G", name: "Stock", req: false, note: "Initial quantity (default: 100)" },
+                { col: "H", name: "Low Stock Alert", req: false, note: "Alert when stock drops below this (default: 10)" },
+                { col: "I", name: "Image URL 1", req: false, note: "Main product image (public https:// URL or /images/…)" },
+                { col: "J", name: "Image URL 2", req: false, note: "Additional image (optional)" },
+                { col: "K", name: "Image URL 3", req: false, note: "Additional image (optional)" },
+                { col: "L", name: "Is Active", req: false, note: "'Yes' / 'No' — visible on shop (default: Yes)" },
+                { col: "M", name: "Is Featured", req: false, note: "'Yes' / 'No' — shown in featured sections (default: No)" },
+                { col: "N", name: "Is Combo", req: false, note: "'Yes' / 'No' — combo/gift-box product (default: No)" },
+                { col: "O", name: "Cracker Type", req: false, note: "'TRADITIONAL' or 'GREEN' (eco-friendly)" },
+                { col: "P", name: "GST Rate (%)", req: false, note: "5 / 12 / 18 / 28 (default: 18)" },
+                { col: "Q", name: "HSN Code", req: false, note: "HSN code for GST compliance (optional)" },
+                { col: "R", name: "Tags", req: false, note: "Comma-separated: 'diwali,popular,bestseller'" },
               ].map(({ col, name, req, note }) => (
                 <div key={col} className="flex items-start gap-2 text-xs">
                   <span className={`shrink-0 w-6 h-5 flex items-center justify-center rounded font-black text-[10px]
                     ${req === true ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
-                    : req === "section" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-                    : "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300"}`}>
+                      : req === "section" ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
+                        : "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300"}`}>
                     {col}
                   </span>
                   <span>
@@ -442,13 +460,22 @@ export default function BulkUploadForm() {
                 All products auto-approved (<strong>isActive = true</strong>) · images, GST, tags preserved
               </p>
             </div>
-            <Button
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="bg-white text-orange-600 hover:bg-orange-50 font-black px-8 h-12 rounded-xl text-sm shadow-md shrink-0 border-0"
-            >
-              {isSubmitting ? "Uploading…" : "✅ Confirm & Upload All"}
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
+              <Button
+                onClick={() => handleSubmit("replace")}
+                disabled={isSubmitting}
+                className="bg-white/20 text-white hover:bg-white/30 font-bold px-6 h-12 rounded-xl text-sm shadow-md border-0"
+              >
+                {isSubmitting ? "Wait…" : "🗑️ Replace All Old"}
+              </Button>
+              <Button
+                onClick={() => handleSubmit("combine")}
+                disabled={isSubmitting}
+                className="bg-white text-orange-600 hover:bg-orange-50 font-black px-6 h-12 rounded-xl text-sm shadow-md border-0"
+              >
+                {isSubmitting ? "Uploading…" : "➕ Combine & Add"}
+              </Button>
+            </div>
           </div>
 
           {/* Categories */}
@@ -533,11 +560,10 @@ export default function BulkUploadForm() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${
-                          row.isActive
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border ${row.isActive
                             ? "bg-green-100 text-green-700 border-green-200"
                             : "bg-gray-100 text-gray-500 border-gray-200"
-                        }`}>
+                          }`}>
                           {row.isActive ? "Yes" : "No"}
                         </span>
                       </td>
@@ -552,11 +578,10 @@ export default function BulkUploadForm() {
                           : <span className="text-gray-300 text-xs">—</span>}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
-                          row.crackerType === "GREEN"
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${row.crackerType === "GREEN"
                             ? "bg-green-100 text-green-700"
                             : "bg-gray-100 text-gray-500"
-                        }`}>
+                          }`}>
                           {row.crackerType === "GREEN" ? "🌿 Green" : "Trad."}
                         </span>
                       </td>
@@ -585,14 +610,22 @@ export default function BulkUploadForm() {
           </div>
 
           {/* Bottom action */}
-          <div className="flex justify-end">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
             <Button
-              onClick={handleSubmit}
+              onClick={() => handleSubmit("replace")}
+              disabled={isSubmitting}
+              variant="outline"
+              className="px-6 h-12 rounded-xl text-sm font-bold shadow-sm text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            >
+              {isSubmitting ? "Wait…" : `🗑️ Replace All with ${parsedRows.length} Products`}
+            </Button>
+            <Button
+              onClick={() => handleSubmit("combine")}
               disabled={isSubmitting}
               variant="primary"
-              className="px-10 h-12 rounded-xl text-sm font-black shadow-lg"
+              className="px-6 h-12 rounded-xl text-sm font-black shadow-lg"
             >
-              {isSubmitting ? "Uploading…" : `✅ Upload ${parsedRows.length} Products`}
+              {isSubmitting ? "Uploading…" : `➕ Add & Combine ${parsedRows.length} Products`}
             </Button>
           </div>
         </>

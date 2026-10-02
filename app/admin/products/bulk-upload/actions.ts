@@ -178,7 +178,7 @@ export async function bulkCreateProducts(products: BulkProductData[]) {
 
 // ─── Excel bulk create ────────────────────────────────────────────────────────
 
-export async function bulkCreateProductsFromExcel(rows: ExcelProductRow[]) {
+export async function bulkCreateProductsFromExcel(rows: ExcelProductRow[], mode: "combine" | "replace" = "combine") {
   try {
     if (!rows || rows.length === 0) {
       return { success: false, error: "No products found in the uploaded file." };
@@ -206,7 +206,15 @@ export async function bulkCreateProductsFromExcel(rows: ExcelProductRow[]) {
       }
     }
 
-    // 3. Insert products — skip if slug already exists
+    // 3. Insert products — skip if slug already exists (or replace all if mode is replace)
+    if (mode === "replace") {
+      // Must delete dependent records first due to foreign key constraints
+      await prisma.comboItem.deleteMany({});
+      await prisma.orderItem.deleteMany({});
+      await prisma.order.deleteMany({});
+      await prisma.product.deleteMany({});
+    }
+
     let inserted = 0;
     let skipped  = 0;
 
@@ -217,9 +225,11 @@ export async function bulkCreateProductsFromExcel(rows: ExcelProductRow[]) {
       const baseSlug = slugify(row.name);
       if (!baseSlug)  { skipped++; continue; }
 
-      // Skip exact duplicates
-      const exact = await prisma.product.findUnique({ where: { slug: baseSlug } });
-      if (exact) { skipped++; continue; }
+      // Skip exact duplicates only if combining
+      if (mode === "combine") {
+        const exact = await prisma.product.findUnique({ where: { slug: baseSlug } });
+        if (exact) { skipped++; continue; }
+      }
 
       const slug = await uniqueSlug(baseSlug);
 
