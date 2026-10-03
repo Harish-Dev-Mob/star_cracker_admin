@@ -47,7 +47,7 @@ function NavLinks({ onLinkClick }: { onLinkClick?: () => void }) {
         <button
           onClick={() => {
             if (onLinkClick) onLinkClick();
-            signOut({ callbackUrl: "/login" });
+            signOut({ callbackUrl: `${process.env.NEXT_PUBLIC_SITE_URL ?? ""}/login` });
           }}
           className="flex items-center gap-3 px-3 py-2.5 w-full rounded-[var(--radius-md)] text-sm font-medium transition-colors text-red-600 hover:bg-red-50 hover:text-red-700"
         >

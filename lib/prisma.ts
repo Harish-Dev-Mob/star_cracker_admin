@@ -1,16 +1,17 @@
 import { PrismaClient } from "@/generated/prisma";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
-import path from "path";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 // Prevent multiple Prisma Client instances during Next.js hot-reload
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 function createPrismaClient() {
-  const dbUrl = process.env.DATABASE_URL ?? `file:${path.join(process.cwd(), "prisma", "dev.db")}`;
-  // Strip "file:" prefix for better-sqlite3
-  const dbPath = dbUrl.replace(/^file:/, "");
+  const pool = new Pool({ 
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
+  const adapter = new PrismaPg(pool);
 
-  const adapter = new PrismaBetterSqlite3({ url: dbPath });
   return new PrismaClient({
     adapter,
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
