@@ -76,6 +76,13 @@ function getProductImg(images: string): string {
 
 const STATUS_STEPS = [
   {
+    id: "PLACED",
+    label: "Placed",
+    icon: "📝",
+    desc: "Order received",
+    color: "gray",
+  },
+  {
     id: "PAYMENT_PENDING",
     label: "Payment Pending",
     icon: "⏳",
@@ -88,13 +95,6 @@ const STATUS_STEPS = [
     icon: "💳",
     desc: "Payment received",
     color: "emerald",
-  },
-  {
-    id: "PLACED",
-    label: "Placed",
-    icon: "📝",
-    desc: "Order received",
-    color: "gray",
   },
   {
     id: "CONFIRMED",
@@ -141,9 +141,9 @@ const STATUS_META: Record<
 };
 
 const NEXT_STATUS: Record<string, string | null> = {
+  PLACED: "PAYMENT_PENDING",
   PAYMENT_PENDING: "PAYMENT_COMPLETED",
-  PAYMENT_COMPLETED: "PLACED",
-  PLACED: "CONFIRMED",
+  PAYMENT_COMPLETED: "CONFIRMED",
   CONFIRMED: "PACKED",
   PACKED: "SHIPPED",
   SHIPPED: "DELIVERED",
@@ -151,7 +151,7 @@ const NEXT_STATUS: Record<string, string | null> = {
   CANCELLED: null,
 };
 
-const ALL_STATUSES = ["PAYMENT_PENDING", "PAYMENT_COMPLETED", "PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"];
+const ALL_STATUSES = ["PLACED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"];
 
 // ─── Status Stepper ──────────────────────────────────────────────────────────
 
@@ -465,9 +465,8 @@ export default function AdminOrderDetailPage() {
             )}
 
             {/* Custom status picker */}
-            {order.status !== "DELIVERED" && order.status !== "CANCELLED" && (
-              <div className="relative">
-                <button
+            <div className="relative">
+              <button
                   id="btn-change-status"
                   onClick={() => setShowStatusPicker((v) => !v)}
                   className="w-full px-5 py-2 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
@@ -500,8 +499,7 @@ export default function AdminOrderDetailPage() {
                     })}
                   </div>
                 )}
-              </div>
-            )}
+            </div>
 
             {/* Cancel button (if not already terminal) */}
             {order.status !== "DELIVERED" && order.status !== "CANCELLED" && (

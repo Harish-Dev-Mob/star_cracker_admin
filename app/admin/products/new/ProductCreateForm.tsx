@@ -116,8 +116,76 @@ export default function ProductCreateForm({
     try {
       for (let i = 0; i < e.target.files.length; i++) {
         const file = e.target.files[i];
+
+        // 1. Initial Size Validation (before compression attempt)
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error("File Too Large", `File ${file.name} exceeds the 5MB maximum limit.`);
+          continue;
+        }
+
+        // 2. Compress to basic quality (max 1000px, 0.7 quality)
+        let processedFile = file;
+        try {
+          processedFile = await new Promise<File>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+              const img = new Image();
+              img.src = event.target?.result as string;
+              img.onload = () => {
+                const canvas = document.createElement("canvas");
+                let { width, height } = img;
+                const maxDim = 1000;
+                
+                if (width > maxDim || height > maxDim) {
+                  if (width > height) {
+                    height = Math.round((height * maxDim) / width);
+                    width = maxDim;
+                  } else {
+                    width = Math.round((width * maxDim) / height);
+                    height = maxDim;
+                  }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                if (ctx) {
+                   ctx.drawImage(img, 0, 0, width, height);
+                   canvas.toBlob(
+                     (blob) => {
+                       if (blob) {
+                         // Check size again if needed (e.g. max 500KB for DB usage)
+                         if (blob.size > 1024 * 1024) { // 1MB final check
+                           reject(new Error(`Even after compression, ${file.name} is too large. Max 1MB.`));
+                         } else {
+                           resolve(new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                             type: "image/jpeg",
+                             lastModified: Date.now(),
+                           }));
+                         }
+                       } else {
+                         reject(new Error("Compression failed"));
+                       }
+                     },
+                     "image/jpeg",
+                     0.7
+                   );
+                } else {
+                  resolve(file); // fallback
+                }
+              };
+              img.onerror = () => reject(new Error("Invalid image"));
+            };
+            reader.onerror = () => reject(new Error("Failed to read file"));
+          });
+        } catch (err: any) {
+          toast.error("Compression Failed", err.message || `Could not compress ${file.name}`);
+          continue; // skip this file
+        }
+
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", processedFile);
         const res = await uploadImage(formData);
         if (res.success && res.url) {
           setFormData(prev => ({
