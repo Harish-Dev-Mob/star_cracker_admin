@@ -76,6 +76,20 @@ function getProductImg(images: string): string {
 
 const STATUS_STEPS = [
   {
+    id: "PAYMENT_PENDING",
+    label: "Payment Pending",
+    icon: "⏳",
+    desc: "Awaiting payment",
+    color: "yellow",
+  },
+  {
+    id: "PAYMENT_COMPLETED",
+    label: "Payment Completed",
+    icon: "💳",
+    desc: "Payment received",
+    color: "emerald",
+  },
+  {
     id: "PLACED",
     label: "Placed",
     icon: "📝",
@@ -110,20 +124,6 @@ const STATUS_STEPS = [
     desc: "Order delivered",
     color: "green",
   },
-  {
-    id: "PAYMENT_PENDING",
-    label: "Payment Pending",
-    icon: "⏳",
-    desc: "Awaiting payment",
-    color: "yellow",
-  },
-  {
-    id: "PAYMENT_COMPLETED",
-    label: "Payment Completed",
-    icon: "💳",
-    desc: "Payment received",
-    color: "emerald",
-  },
 ];
 
 const STATUS_META: Record<
@@ -141,17 +141,17 @@ const STATUS_META: Record<
 };
 
 const NEXT_STATUS: Record<string, string | null> = {
+  PAYMENT_PENDING: "PAYMENT_COMPLETED",
+  PAYMENT_COMPLETED: "PLACED",
   PLACED: "CONFIRMED",
   CONFIRMED: "PACKED",
   PACKED: "SHIPPED",
   SHIPPED: "DELIVERED",
-  DELIVERED: "PAYMENT_PENDING",
-  PAYMENT_PENDING: "PAYMENT_COMPLETED",
-  PAYMENT_COMPLETED: null,
+  DELIVERED: null,
   CANCELLED: null,
 };
 
-const ALL_STATUSES = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "PAYMENT_PENDING", "PAYMENT_COMPLETED", "CANCELLED"];
+const ALL_STATUSES = ["PAYMENT_PENDING", "PAYMENT_COMPLETED", "PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED", "CANCELLED"];
 
 // ─── Status Stepper ──────────────────────────────────────────────────────────
 
@@ -435,7 +435,7 @@ export default function AdminOrderDetailPage() {
                 🛒 {itemCount} item{itemCount > 1 ? "s" : ""}
               </span>
               <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                💰 {order.paymentMode === "COD" ? "Cash on Delivery" : "Online"}
+                💰 {order.paymentMode === "COD" ? "COD" : "Online"}
               </span>
               {order.couponCode && (
                 <span className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-3 py-1 rounded-full">
@@ -713,17 +713,7 @@ export default function AdminOrderDetailPage() {
                   {fmt(order.total)}
                 </span>
               </div>
-              <div className="pt-1">
-                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
-                  <span className="text-base">💰</span>
-                  <div>
-                    <p className="text-xs font-black text-amber-800">Cash on Delivery</p>
-                    <p className="text-[10px] text-amber-600 font-medium">
-                      Collect at time of delivery
-                    </p>
-                  </div>
-                </div>
-              </div>
+
             </div>
           </InfoCard>
 

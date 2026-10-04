@@ -320,6 +320,8 @@ exports.Role = exports.$Enums.Role = {
 
 exports.OrderStatus = exports.$Enums.OrderStatus = {
   PLACED: 'PLACED',
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  PAYMENT_COMPLETED: 'PAYMENT_COMPLETED',
   CONFIRMED: 'CONFIRMED',
   PACKED: 'PACKED',
   SHIPPED: 'SHIPPED',

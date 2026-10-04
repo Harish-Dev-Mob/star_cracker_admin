@@ -19,6 +19,8 @@ enum Role {
 
 enum OrderStatus {
   PLACED
+  PAYMENT_PENDING
+  PAYMENT_COMPLETED
   CONFIRMED
   PACKED
   SHIPPED

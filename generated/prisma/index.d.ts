@@ -98,6 +98,8 @@ export type Role = (typeof Role)[keyof typeof Role]
 
 export const OrderStatus: {
   PLACED: 'PLACED',
+  PAYMENT_PENDING: 'PAYMENT_PENDING',
+  PAYMENT_COMPLETED: 'PAYMENT_COMPLETED',
   CONFIRMED: 'CONFIRMED',
   PACKED: 'PACKED',
   SHIPPED: 'SHIPPED',
