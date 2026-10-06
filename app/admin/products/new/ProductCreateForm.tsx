@@ -41,6 +41,18 @@ export default function ProductCreateForm({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Blob URLs used only for in-form preview (never sent to DB)
+  const [previewUrls, setPreviewUrls] = useState<string[]>(() => {
+    if (!initialData?.images) return [];
+    try {
+      const arr = JSON.parse(initialData.images);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return initialData.images ? [initialData.images] : [];
+    }
+  });
+
   const [formData, setFormData] = useState(initialData || {
     name: "",
     slug: "",
@@ -192,16 +204,23 @@ export default function ProductCreateForm({
           continue; // skip this file
         }
 
-        const formData = new FormData();
-        formData.append("file", processedFile);
-        const res = await uploadImage(formData);
+        // 3. Generate a local blob: URL for instant preview (before server upload)
+        const blobPreview = URL.createObjectURL(processedFile);
+
+        const fd = new FormData();
+        fd.append("file", processedFile);
+        const res = await uploadImage(fd);
         if (res.success && res.url) {
+          // Store the server URL in formData.images (saved to DB)
           setFormData(prev => ({
             ...prev,
-            images: prev.images ? `${prev.images}, ${res.url}` : res.url
+            images: prev.images ? `${prev.images}, ${res.url}` : res.url!
           }));
+          // Store the blob URL for preview display
+          setPreviewUrls(prev => [...prev, blobPreview]);
           toast.success("Uploaded", `Image ${file.name} uploaded successfully.`);
         } else {
+          URL.revokeObjectURL(blobPreview); // clean up unused blob
           toast.error("Upload Failed", res.error || "Failed to upload image.");
         }
       }
@@ -215,12 +234,18 @@ export default function ProductCreateForm({
   };
 
   const removeImage = (indexToRemove: number) => {
+    // Revoke blob URL to free memory
+    const blobUrl = previewUrls[indexToRemove];
+    if (blobUrl?.startsWith("blob:")) URL.revokeObjectURL(blobUrl);
+
+    setPreviewUrls(prev => prev.filter((_, i) => i !== indexToRemove));
     setFormData(prev => {
       const currentImages = prev.images.split(",").map(url => url.trim()).filter(url => url !== "");
       currentImages.splice(indexToRemove, 1);
       return { ...prev, images: currentImages.join(", ") };
     });
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none overflow-hidden p-6 md:p-8">
@@ -304,25 +329,21 @@ export default function ProductCreateForm({
                   disabled={isUploading}
                 />
               </label>
-              {formData.images && (
+              {previewUrls.length > 0 && (
                 <div className="text-xs text-gray-500 max-w-[200px] truncate">
-                  {formData.images.split(",").filter(u => u.trim()).length} image(s) uploaded
+                  {previewUrls.length} image(s) uploaded
                 </div>
               )}
             </div>
 
-            {formData.images && formData.images.trim() !== "" && (
+            {previewUrls.length > 0 && (
               <div className="flex flex-wrap gap-4 mt-2">
-                {formData.images.split(",").map(url => url.trim()).filter(url => url !== "").map((url, idx) => (
+                {previewUrls.map((url, idx) => (
                   <div key={idx} className="relative group w-24 h-24 rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-gray-50">
                     <img
                       src={url}
                       alt={`Preview ${idx + 1}`}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        // Show a grey placeholder when the URL can't load
-                        (e.target as HTMLImageElement).src = "/icons/logo.png";
-                      }}
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 

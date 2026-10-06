@@ -165,7 +165,7 @@ async function parseExcelFile(file: File): Promise<{
       price = rawPrice; // Base price stays exactly as in Excel
       
       const rawDiscountPrice = typeof col4 === "number" && col4 > 0 ? col4 : null;
-      discountPrice = rawDiscountPrice ? Math.ceil(rawDiscountPrice * 1.05) : null;
+      discountPrice = rawDiscountPrice;
       
       unit = String(col3 ?? "").trim() || "1 PKT";
       description = "";
@@ -176,7 +176,7 @@ async function parseExcelFile(file: File): Promise<{
       price = rawPrice; // Base price stays exactly as in Excel
       
       const rawDiscountPrice = typeof col4 === "number" && col4 > 0 ? col4 : null;
-      discountPrice = rawDiscountPrice ? Math.ceil(rawDiscountPrice * 1.05) : null;
+      discountPrice = rawDiscountPrice;
       
       unit = String(col5 ?? "").trim() || "1 PKT";
     }
@@ -329,10 +329,7 @@ export default function BulkUploadForm() {
               Categories, slugs, and image arrays are handled <strong>automatically</strong>.
               All products are set to <strong>Active</strong> instantly — no extra approval needed.
             </p>
-            <div className="mb-4 inline-flex items-center gap-2 px-3 py-2 bg-green-50 text-green-700 border border-green-200 rounded-lg text-xs font-bold shadow-sm">
-              <span>📈</span> 
-              <span>Automatic 5% Markup: The Sale Price (Discounted Price) is automatically increased by 5% when uploaded. The MRP stays exactly as typed.</span>
-            </div>
+
 
             {/* Full column reference */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 gap-x-6">

@@ -54,7 +54,7 @@ export function ProductSearchInput({ defaultValue = "" }: { defaultValue?: strin
       <button
         type="submit"
         disabled={isPending}
-        className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black uppercase tracking-wide shadow hover:shadow-md hover:-translate-y-px transition-all disabled:opacity-60"
+        className="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black uppercase tracking-wide shadow hover:shadow-md hover:brightness-110 transition-all disabled:opacity-60"
       >
         {isPending ? "…" : "Go"}
       </button>
