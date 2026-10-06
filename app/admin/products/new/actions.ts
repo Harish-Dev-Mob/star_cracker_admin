@@ -171,6 +171,13 @@ export async function uploadImage(formData: FormData) {
       return { success: true, url };
     }
 
+    if (process.env.NODE_ENV === "production") {
+      return { 
+        success: false, 
+        error: "Cloudinary environment variables (CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET) are missing on Render. You must add them in the Render Dashboard for image uploads to work in production." 
+      };
+    }
+
     // ── Local filesystem fallback (development) ───────────────────────────
     const ext = path.extname(file.name);
     const filename = `${crypto.randomBytes(16).toString("hex")}${ext}`;
