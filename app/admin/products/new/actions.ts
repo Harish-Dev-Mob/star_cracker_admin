@@ -136,6 +136,7 @@ export async function updateProduct(id: string, data: {
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { v2 as cloudinary } from "cloudinary";
 
 export async function uploadImage(formData: FormData) {
   try {
@@ -147,18 +148,39 @@ export async function uploadImage(formData: FormData) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
+    // ── Cloudinary upload (production / Render) ──────────────────────────
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey    = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (cloudName && apiKey && apiSecret) {
+      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
+
+      const url = await new Promise<string>((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream(
+            { folder: "fire-cracker/products", resource_type: "image" },
+            (err, result) => {
+              if (err || !result) return reject(err ?? new Error("Cloudinary upload failed"));
+              resolve(result.secure_url);
+            }
+          )
+          .end(buffer);
+      });
+
+      return { success: true, url };
+    }
+
+    // ── Local filesystem fallback (development) ───────────────────────────
     const ext = path.extname(file.name);
     const filename = `${crypto.randomBytes(16).toString("hex")}${ext}`;
 
-    // Paths
     const mainWebsiteDir = path.join(process.cwd(), "..", "fire-cracker-website", "public", "images", "products");
     const adminWebsiteDir = path.join(process.cwd(), "public", "images", "products");
 
-    // Ensure directories exist
     await mkdir(mainWebsiteDir, { recursive: true });
     await mkdir(adminWebsiteDir, { recursive: true });
 
-    // Save to both the main website and the admin panel's public folder
     await writeFile(path.join(mainWebsiteDir, filename), buffer);
     await writeFile(path.join(adminWebsiteDir, filename), buffer);
 
@@ -169,4 +191,3 @@ export async function uploadImage(formData: FormData) {
     return { success: false, error: err.message };
   }
 }
-

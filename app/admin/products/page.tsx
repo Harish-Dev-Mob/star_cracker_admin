@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Image from "next/image";
 import Link from "next/link";
 import { AdminLinkBtn, PaginationBar } from "@/components/admin/AdminActions";
+import { ProductSearchInput } from "@/components/admin/ProductSearchInput";
 
 const ALLOWED_SIZES = [10, 20, 50, 100] as const;
 type PageSize = (typeof ALLOWED_SIZES)[number];
@@ -15,19 +16,61 @@ function formatPrice(n: number) {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 }).format(n);
 }
 
+const PLACEHOLDER = "/images/products/placeholder.jpg";
+
+/** Safely extract the first valid image URL from a JSON-encoded images string. */
+function parseFirstImage(raw: string): string {
+  if (!raw || typeof raw !== "string") return PLACEHOLDER;
+
+  const trimmed = raw.trim();
+
+  // Plain URL stored directly (not JSON-encoded)
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  try {
+    const arr = JSON.parse(trimmed);
+    if (!Array.isArray(arr)) return PLACEHOLDER;
+
+    const first = arr.find(
+      (u): u is string =>
+        typeof u === "string" &&
+        u.trim().length > 0 &&
+        (u.startsWith("/") || u.startsWith("http://") || u.startsWith("https://"))
+    );
+
+    return first ?? PLACEHOLDER;
+  } catch {
+    return PLACEHOLDER;
+  }
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; pageSize?: string }>;
+  searchParams: Promise<{ page?: string; pageSize?: string; q?: string }>;
 }) {
-  const { page: pageParam, pageSize: pageSizeParam } = await searchParams;
+  const { page: pageParam, pageSize: pageSizeParam, q } = await searchParams;
   const pageSize = parsePageSize(pageSizeParam);
   const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+  const searchQuery = q?.trim() ?? "";
+
+  // Build the Prisma where filter
+  const where = searchQuery
+    ? {
+        OR: [
+          { name: { contains: searchQuery, mode: "insensitive" as const } },
+          { slug: { contains: searchQuery, mode: "insensitive" as const } },
+        ],
+      }
+    : {};
 
   const [totalCount, products] = await Promise.all([
-    prisma.product.count(),
+    prisma.product.count({ where }),
     prisma.product.findMany({
+      where,
       orderBy: { createdAt: "desc" },
       include: { category: true },
       skip: (currentPage - 1) * pageSize,
@@ -38,6 +81,9 @@ export default async function AdminProductsPage({
   const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
+  // Pass search param through to pagination links
+  const extraParams = searchQuery ? `q=${encodeURIComponent(searchQuery)}` : "";
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto pb-12">
       {/* Header section */}
@@ -47,7 +93,7 @@ export default async function AdminProductsPage({
           <h1 className="text-3xl font-black text-gray-900 font-display tracking-tight">Products Management</h1>
           <p className="text-sm font-medium text-gray-500 mt-1">
             Manage your catalog, inventory, and pricing.{" "}
-            <span className="text-amber-600 font-bold">{totalCount.toLocaleString()} products total</span>
+            <span className="text-amber-600 font-bold">{totalCount.toLocaleString()} product{totalCount !== 1 ? "s" : ""}{searchQuery ? " found" : " total"}</span>
           </p>
         </div>
         <div className="relative z-10 flex flex-col sm:flex-row items-center gap-3">
@@ -61,6 +107,23 @@ export default async function AdminProductsPage({
       </div>
 
       <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+
+        {/* Search bar */}
+        <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+          <ProductSearchInput defaultValue={searchQuery} />
+          {searchQuery && (
+            <Link
+              href="/admin/products"
+              className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors whitespace-nowrap flex items-center gap-1"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Clear
+            </Link>
+          )}
+        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left text-gray-600">
             <thead className="text-xs text-gray-400 uppercase bg-gray-50/50 border-b border-gray-100">
@@ -77,14 +140,25 @@ export default async function AdminProductsPage({
             <tbody className="divide-y divide-gray-50">
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-400 font-medium bg-gray-50/50">No products found.</td>
+                  <td colSpan={7} className="px-6 py-16 text-center bg-gray-50/50">
+                    <div className="flex flex-col items-center gap-2">
+                      <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                      </svg>
+                      <p className="text-gray-400 font-semibold">
+                        {searchQuery ? `No products match "${searchQuery}"` : "No products found."}
+                      </p>
+                      {searchQuery && (
+                        <Link href="/admin/products" className="text-xs text-amber-600 font-bold hover:underline mt-1">
+                          Clear search
+                        </Link>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ) : (
                 products.map((product) => {
-                  const img = (() => {
-                     try { return (JSON.parse(product.images) as string[])[0] || "/images/products/placeholder.jpg"; }
-                     catch { return "/images/products/placeholder.jpg"; }
-                  })();
+                  const img = parseFirstImage(product.images);
 
                   return (
                      <tr key={product.id} className="hover:bg-amber-50/30 transition-colors group cursor-pointer">
@@ -143,8 +217,13 @@ export default async function AdminProductsPage({
           </table>
         </div>
 
-        {/* Pagination */}
-        <PaginationBar currentPage={safeCurrentPage} totalPages={totalPages} pageSize={pageSize} />
+        {/* Pagination — pass search query through so it's preserved on page navigation */}
+        <PaginationBar
+          currentPage={safeCurrentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          extraParams={extraParams}
+        />
       </div>
 
       {/* Page info */}

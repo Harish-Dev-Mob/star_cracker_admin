@@ -76,6 +76,14 @@ export default function ProductCreateForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // Validate at least one image
+    const imageList = formData.images.split(",").map((u) => u.trim()).filter((u) => u !== "");
+    if (imageList.length === 0) {
+      toast.error("Image Required", "Please upload at least one product image before saving.");
+      setIsSubmitting(false);
+      return;
+    }
     
     try {
       const payload = {
@@ -83,7 +91,7 @@ export default function ProductCreateForm({
         price: parseFloat(formData.price),
         discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : undefined,
         stock: parseInt(formData.stock, 10),
-        images: formData.images.split(",").map(url => url.trim()).filter(url => url !== ""),
+        images: imageList,
         crackerType: formData.crackerType,
         lowStockThreshold: parseInt(formData.lowStockThreshold, 10) || 10,
         gstRate: parseFloat(formData.gstRate) || 18,
@@ -307,7 +315,15 @@ export default function ProductCreateForm({
               <div className="flex flex-wrap gap-4 mt-2">
                 {formData.images.split(",").map(url => url.trim()).filter(url => url !== "").map((url, idx) => (
                   <div key={idx} className="relative group w-24 h-24 rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-gray-50">
-                    <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
+                    <img
+                      src={url}
+                      alt={`Preview ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        // Show a grey placeholder when the URL can't load
+                        (e.target as HTMLImageElement).src = "/icons/logo.png";
+                      }}
+                    />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 
                         type="button" 
